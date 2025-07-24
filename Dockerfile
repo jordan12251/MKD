@@ -1,4 +1,4 @@
-FROM node:lts-buster
+FROM node:18-bullseye  # ou node:20-bookworm si tu veux plus récent
 
 # Installer les dépendances nécessaires
 RUN apt-get update && \
