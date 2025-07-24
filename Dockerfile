@@ -1,4 +1,5 @@
-FROM node:18-bullseye  # ou node:20-bookworm si tu veux plus récent
+# Utiliser une version de Node avec Debian encore supportée
+FROM node:18-bullseye
 
 # Installer les dépendances nécessaires
 RUN apt-get update && \
@@ -12,7 +13,6 @@ WORKDIR /usr/src/app
 
 COPY package.json .
 
-# Installer les dépendances Node
 RUN npm install && npm install -g qrcode-terminal pm2
 
 COPY . .
