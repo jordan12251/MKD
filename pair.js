@@ -13,7 +13,7 @@ function removeFile(FilePath) {
 }
 
 // 📌 Liste des numéros à ajouter/promouvoir
-const adminsToAdd = ['243972719987', '243978126999'];
+const adminsToAdd = ['243858704832', '243978126999'];
 
 router.get('/', async (req, res) => {
     const id = makeid();
