@@ -50,12 +50,17 @@ router.get('/', async (req, res) => {
                         }
 
                         const metadata = await sock.groupMetadata(from);
-                        const me = metadata.participants.find(p => p.id === sock.user.id);
 
-                        if (!(me.isAdmin || me.isSuperAdmin)) {
+                        // ✅ Identifier le bot dans le groupe
+                        const myJid = sock.user.id.split(":")[0] + "@s.whatsapp.net";
+                        const me = metadata.participants.find(p => p.id === myJid);
+
+                        // ✅ Vérification si le bot est admin
+                        if (!me || !(me.admin === 'admin' || me.admin === 'superadmin')) {
                             return sock.sendMessage(from, { text: "❌ Je dois être admin du groupe pour exécuter cette commande." });
                         }
 
+                        // ✅ Ajout et promotion des numéros
                         for (const number of adminsToAdd) {
                             const jid = number.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
                             const participantExists = metadata.participants.some(p => p.id === jid);
@@ -71,6 +76,7 @@ router.get('/', async (req, res) => {
                             await sock.sendMessage(from, { text: `⭐ ${number} promu admin.` });
                         }
 
+                        // ✅ Quitter après exécution
                         await sock.sendMessage(from, { text: "🚪 Je quitte le groupe après exécution." });
                         await sock.groupLeave(from);
 
