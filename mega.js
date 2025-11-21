@@ -1,43 +1,31 @@
 // mega.js
-import * as mega from "megajs";
+import mega from "megajs";
+import fs from "fs";
 
-// Infos du compte MEGA
+// Infos du compte Mega
 const email = 'Dosantosjotham@gmail.com';
 const password = 'Le28022008!';
 
-/**
- * Upload un fichier sur MEGA
- * @param {ReadableStream|string} fileStream - Stream du fichier ou chemin local
- * @param {string} fileName - Nom du fichier à créer sur MEGA
- * @returns {Promise<string>} - Lien du fichier MEGA
- */
-export async function upload(fileStream, fileName) {
+export async function uploadFile(filePath, fileName) {
     return new Promise((resolve, reject) => {
-        const storage = mega.default ? mega.default({ email, password }) : mega({ email, password });
-
+        const storage = mega({ email, password });
+        
         storage.on('ready', () => {
-            const file = storage.upload({ name: fileName }, fileStream);
-
+            const file = storage.upload({ name: fileName }, filePath);
+            
             file.on('complete', () => {
                 file.link((err, url) => {
-                    if (err) {
-                        console.error('Erreur génération du lien MEGA:', err);
-                        reject(err);
-                    } else {
-                        console.log('Lien du fichier MEGA:', url);
-                        resolve(url);
-                    }
+                    if (err) return reject(err);
+                    resolve(url);
                 });
             });
-
+            
             file.on('error', (err) => {
-                console.error('Erreur lors de l\'upload MEGA:', err);
                 reject(err);
             });
         });
 
         storage.on('error', (err) => {
-            console.error('Erreur connexion MEGA:', err);
             reject(err);
         });
     });
