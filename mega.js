@@ -1,45 +1,44 @@
-// mega.js
-import mega from "megajs";
+const mega = require("megajs");
+const fs = require("fs");
+const path = require("path");
 
-// Infos du compte Mega
-const email = 'Dosantosjotham@gmail.com';
-const password = 'Le28022008!';
+// Identifiants MEGA
+const email = "Dosantosjotham@gmail.com";
+const password = "Le28022008!";
 
-// Connexion au compte Mega
-const storage = mega({ email, password });
-
-/**
- * Fonction pour uploader un fichier sur Mega et récupérer le lien
- * @param {ReadableStream|Buffer|String} fileStream - Le fichier ou chemin du fichier à uploader
- * @param {String} fileName - Nom du fichier sur Mega
- * @returns {Promise<String>} - Retourne l'URL du fichier
- */
-export async function upload(fileStream, fileName) {
+// Fonction pour uploader un fichier vers MEGA
+async function uploadFileToMega(filePath) {
     return new Promise((resolve, reject) => {
-        storage.on('ready', () => {
-            const file = storage.upload({ name: fileName }, fileStream);
+        const storage = mega({ email, password });
 
-            file.on('complete', () => {
+        storage.on("ready", () => {
+            const fileName = path.basename(filePath);
+
+            const file = storage.upload(
+                { name: fileName },
+                fs.createReadStream(filePath)
+            );
+
+            file.on("complete", () => {
                 file.link((err, url) => {
                     if (err) {
-                        console.error('Erreur génération du lien:', err);
+                        console.error("Erreur MEGA:", err);
                         reject(err);
                     } else {
-                        console.log('Lien du fichier:', url);
+                        console.log("Lien MEGA:", url);
                         resolve(url);
                     }
                 });
             });
-
-            file.on('error', (err) => {
-                console.error('Erreur upload Mega:', err);
-                reject(err);
-            });
         });
 
-        storage.on('error', (err) => {
-            console.error('Erreur connexion Mega:', err);
+        storage.on("error", (err) => {
+            console.error("Erreur connexion MEGA:", err);
             reject(err);
         });
     });
 }
+
+module.exports = {
+    uploadFileToMega
+};
