@@ -6,18 +6,10 @@ import { fileURLToPath } from "url";
 import server from "./qr.js";
 import code from "./pair.js";
 
-process.setMaxListeners(500);
-
 const app = express();
+const PORT = process.env.PORT || 8000; // Render utilise process.env.PORT
 
-// Render fournit le port via process.env.PORT
-const PORT = process.env.PORT;
-if (!PORT) {
-    console.error("❌ No PORT provided by Render. Exiting...");
-    process.exit(1);
-}
-
-// __dirname replacement pour ESM
+// __dirname replacement en ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -25,30 +17,26 @@ const __dirname = path.dirname(__filename);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Routes API
+// Routes
 app.use("/server", server);
 app.use("/code", code);
 
-// Pages statiques
-app.use("/pair", (req, res) => {
-    res.sendFile(path.join(__dirname, "pair.html"));
+app.get("/pair", (req, res) => {
+  res.sendFile(path.join(__dirname, "pair.html"));
 });
 
-app.use("/qr", (req, res) => {
-    res.sendFile(path.join(__dirname, "qr.html"));
+app.get("/qr", (req, res) => {
+  res.sendFile(path.join(__dirname, "qr.html"));
 });
 
-app.use("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "main.html"));
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "main.html"));
 });
 
-// Start server
+// Démarrage serveur
 app.listen(PORT, () => {
-    console.log(`
-✅ MALVIN-XD Server running!
-🌐 Accessible on port: ${PORT}
-Don't forget to give a star ⭐
-`);
+  console.log(`✅ MALVIN-XD Server running on port ${PORT}`);
+  console.log(`Open http://localhost:${PORT} or your Render URL`);
 });
 
 export default app;
