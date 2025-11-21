@@ -1,13 +1,11 @@
 {
   "name": "web-pair",
   "version": "0.0.1",
-  "description": "A multi functional whatsapp bot Web paircode.",
+  "description": "A multi-functional WhatsApp bot Web paircode.",
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "pm2 start index.js --deep-monitoring --attach --name malvin-xd",
-    "stop": "pm2 stop malvin-xd",
-    "restart": "pm2 restart malvin-xd"
+    "start": "node index.js"
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.17",
@@ -20,7 +18,6 @@
     "express": "^4.18.1",
     "path": "^0.12.7",
     "megajs": "1.1.7",
-    "pm2": "^5.4.0",
     "async-mutex": "0.4.1"
   }
 }
