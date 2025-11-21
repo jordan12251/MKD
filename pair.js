@@ -1,76 +1,85 @@
-import { makeid } from "./gen-id.js";
 import express from "express";
 import fs from "fs";
 import pino from "pino";
-import {
-    default as makeWASocket,
-    useMultiFileAuthState,
-    delay,
-    Browsers,
-    makeCacheableSignalKeyStore,
-} from "@whiskeysockets/baileys";
+import { makeid } from "./gen-id.js";
+import { uploadFile } from "./mega.js";
 
-import { uploadFile } from "./mega.js"; // Assure-toi que mega.js exporte `uploadFile`
+import {
+  default as makeWASocket,
+  useMultiFileAuthState,
+  delay,
+  Browsers,
+  makeCacheableSignalKeyStore
+} from "@whiskeysockets/baileys";
 
 const router = express.Router();
 
-function removeFile(FilePath) {
-    if (!fs.existsSync(FilePath)) return false;
-    fs.rmSync(FilePath, { recursive: true, force: true });
+function removeFile(filePath) {
+  if (fs.existsSync(filePath)) fs.rmSync(filePath, { recursive: true, force: true });
 }
 
 router.get("/", async (req, res) => {
-    const id = makeid();
-    let num = req.query.number;
+  const id = makeid();
+  let num = req.query.number;
 
+  async function MALVIN_XD_PAIR_CODE() {
     const { state, saveCreds } = await useMultiFileAuthState(`./temp/${id}`);
 
-    const items = ["Safari"];
-    const randomItem = items[Math.floor(Math.random() * items.length)];
+    try {
+      const items = ["Safari"];
+      const randomItem = items[Math.floor(Math.random() * items.length)];
 
-    const sock = makeWASocket({
+      const sock = makeWASocket({
         auth: {
-            creds: state.creds,
-            keys: makeCacheableSignalKeyStore(
-                state.keys,
-                pino({ level: "fatal" }).child({ level: "fatal" })
-            ),
+          creds: state.creds,
+          keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" }))
         },
-        printQRInTerminal: true, // pour debug dans le terminal
+        printQRInTerminal: false,
         generateHighQualityLinkPreview: true,
         logger: pino({ level: "fatal" }),
         syncFullHistory: false,
-        browser: Browsers.macOS(randomItem),
-    });
+        browser: Browsers.macOS(randomItem)
+      });
 
-    sock.ev.on("creds.update", saveCreds);
+      if (!sock.authState.creds.registered) {
+        await delay(1500);
+        num = num.replace(/[^0-9]/g, "");
+        const code = await sock.requestPairingCode(num);
+        if (!res.headersSent) return res.json({ code });
+      }
 
-    sock.ev.on("connection.update", async (update) => {
-        const { connection, lastDisconnect, qr } = update;
+      sock.ev.on("creds.update", saveCreds);
 
-        if (qr) {
-            // On renvoie le QR/Pairing code au front
-            res.json({ qr });
-        }
+      sock.ev.on("connection.update", async (s) => {
+        const { connection, lastDisconnect } = s;
 
         if (connection === "open") {
-            const rf = `./temp/${id}/creds.json`;
-            const mega_url = await uploadFile(rf, `${sock.user.id}.json`);
-            console.log("Session uploaded to Mega:", mega_url);
+          await delay(5000);
+          const rf = `./temp/${id}/creds.json`;
 
-            // Message principal
-            const md = "malvin~" + mega_url.replace("https://mega.nz/file/", "");
-            await sock.sendMessage(sock.user.id, { text: md });
+          const mega_url = await uploadFile(fs.createReadStream(rf), `${sock.user.id}.json`);
+          const string_session = mega_url.replace("https://mega.nz/file/", "");
+          const md = "malvin~" + string_session;
 
-            removeFile(`./temp/${id}`);
+          await sock.sendMessage(sock.user.id, { text: md });
+          removeFile(`./temp/${id}`);
+          console.log(`👤 ${sock.user.id} Connected. Session sauvegardée.`);
+          sock.ws.close();
         }
 
-        if (connection === "close" &&
-            lastDisconnect?.error?.output?.statusCode !== 401
-        ) {
-            console.log("Retrying connection...");
+        if (connection === "close" && lastDisconnect?.error?.output?.statusCode !== 401) {
+          await delay(10);
+          MALVIN_XD_PAIR_CODE();
         }
-    });
+      });
+    } catch (err) {
+      console.log("Service restarted due to error:", err);
+      removeFile(`./temp/${id}`);
+      if (!res.headersSent) res.json({ code: "❗ Service Unavailable" });
+    }
+  }
+
+  return await MALVIN_XD_PAIR_CODE();
 });
 
 export default router;
