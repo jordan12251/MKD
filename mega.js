@@ -1,4 +1,6 @@
-import mega from "megajs";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const mega = require("megajs");
 import fs from "fs";
 
 /**
