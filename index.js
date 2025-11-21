@@ -9,16 +9,27 @@ import code from "./pair.js";
 process.setMaxListeners(500);
 
 const app = express();
-const PORT = process.env.PORT || 8000;
 
-// __dirname replacement in ESM
+// Render fournit le port via process.env.PORT
+const PORT = process.env.PORT;
+if (!PORT) {
+    console.error("❌ No PORT provided by Render. Exiting...");
+    process.exit(1);
+}
+
+// __dirname replacement pour ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Routes
+// Body parser
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Routes API
 app.use("/server", server);
 app.use("/code", code);
 
+// Pages statiques
 app.use("/pair", (req, res) => {
     res.sendFile(path.join(__dirname, "pair.html"));
 });
@@ -31,16 +42,12 @@ app.use("/", (req, res) => {
     res.sendFile(path.join(__dirname, "main.html"));
 });
 
-// Body parser
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// Server
+// Start server
 app.listen(PORT, () => {
     console.log(`
-Don't Forget To Give A Star MALVIN-XD ⭐
-
-Server running on http://localhost:${PORT}
+✅ MALVIN-XD Server running!
+🌐 Accessible on port: ${PORT}
+Don't forget to give a star ⭐
 `);
 });
 
